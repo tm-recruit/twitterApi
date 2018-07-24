@@ -80,18 +80,22 @@ $selectHasTagTabelLatestTweetDate = $mysql->query('SELECT tweet_date FROM max_id
 //日時計算
 $nowDate = strtotime("now");
 $diffDate = ($nowDate - $selectHasTagTabelLatestTweetDate) / 60;
-
+$diffDate *= -1;
 
 // ハッシュタグによるツイート検索
 $query = $hash_tag . " exclude:retweets since:" . date("Y-m-d H:i:s" , strtotime($diffDate." min"));
 $hash_params = array('q' => $query ,'count' => $count, 'lang'=> $lang, 'tweet_mode' => $mode);
 $tweets = $connection->get('search/tweets', $hash_params)->statuses;
 
+
+
+//
 if(count($tweets) > 0){
 	// 検索結果を1行ごとに整形 
 	foreach ($tweets as $tweet) {
-
+		
 		$timestamp = $tweet->created_at;
+
 		$user = $tweet->user;
 		$name = $user->name . '@' . $user->screen_name;
 		// "を""に変換
