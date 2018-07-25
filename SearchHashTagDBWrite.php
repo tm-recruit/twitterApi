@@ -6,11 +6,6 @@ date_default_timezone_set('Asia/Tokyo');
 // twistoauth の読み込み
 require 'TwistOAuth.phar';
 
-// CSVファイルの読み込み
-// $file = '/srv/batch/result/SearchResult.csv';
-// $data = file_get_contents($file);
-// $data = mb_convert_encoding($data,"UTF-8","SJIS");
-
 // 設定の読み込み
 $conf = parse_ini_file('/srv/api/conf/conf.ini');
 $dbconf = parse_ini_file('/srv/api/conf/dbconf.ini');
@@ -48,9 +43,6 @@ $mysql = new PDO("mysql:dbname=" .$dbName .";host=".$hosts, $dbUser, $dbPassword
 	PDO::ATTR_EMULATE_PREPARES => false,
 ));
 
-$mysql->query("SET NAMES UTF8;");
-
-
 //----------------------------------------------------------
 // テーブル定義
 //----------------------------------------------------------
@@ -76,16 +68,17 @@ $mysql->query("SET NAMES UTF8;");
 //----------------------------------------------------------
 
 //Insert文生成
-$updateQuery = 
-'INSERT INTO hash_tag_tweets (tweet_id,user_name,user_id,tweet_text,tweet_date,ins_date) VALUES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date, :ins_date)';
+$updateQuery = 'INSERT INTO hash_tag_tweets (tweet_id,user_name,user_id,tweet_text,tweet_date,ins_date) VALUES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date, :ins_date)';
 
-//select文実行
-$selectHasTagTabelLatestTweetDate = '2018-07-25 19:10:00';
-//$mysql->query('SELECT tweet_date FROM max_id');
+//前回実行日を取得
+$selectSerch = $mysql->query('SELECT ins_date FROM hash_tag_tweets where hash_id = (SELECT MAX(hash_id) FROM hash_tag_tweets)');
+$lastExecutionDateList = $selectSerch->fetch();
+$lastExecutionDate = date("Y-m-d H:i:s" ,strtotime($lastExecutionDateList["ins_date"]));
+
 //日時計算
 $nowDate = strtotime("now");
-$selectHasTagTabelLatestTweetDate = strtotime($selectHasTagTabelLatestTweetDate);
-$diffDate = ($nowDate - $selectHasTagTabelLatestTweetDate) / 60;
+$lastExecutionDate = strtotime($lastExecutionDate);
+$diffDate = ($nowDate - $lastExecutionDate) / 60;
 $diffDate = floor($diffDate);
 $diffDate *= -1;
 echo $diffDate . "分前のツイートを取得します。\n";
@@ -96,7 +89,6 @@ $tweets = $connection->get('search/tweets', $hash_params)->statuses;
 
 if(count($tweets) > 0){
 	// 検索結果を1行ごとに整形 
-	$testbancount = 0;
 	//sort
 	$tweets = (array)$tweets;
 	foreach($tweets as $key => $value){
@@ -123,20 +115,13 @@ if(count($tweets) > 0){
 		}
 		//重複チェック
 		$serchTweetId = "SELECT tweet_id FROM hash_tag_tweets WHERE tweet_id = :tweet_id";
-		$serchID = "1022073806007877633";
 		$selectID = $mysql->prepare($serchTweetId);
-		$selectID->bindParam(':tweet_id',$serchID,PDO::PARAM_STR);
+		$selectID->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
 		$selectID->execute();
 		$idDate = $selectID->fetch();
 		$IDOverlap = false;
-		foreach($idDate as $id){
-			print_r($id);
-			echo "\n";
-			echo "\n";
-			echo "\n";
-			if($id != 0){
-				$IDOverlap = true;
-			}
+		if($idDate["tweet_id"] != 0){
+			$IDOverlap = true;
 		}
 		//禁止文字が含まれてためデータとしては加えない
 		if($breakPoint == true) {
@@ -145,49 +130,22 @@ if(count($tweets) > 0){
 			//selectIDがヒットしていれば重複
 			echo "同じツイートが含まれてます！ \n";
 		} else {
-			// //文字をコマンドラインに出力（必要になったらコメントアウトを外せば出力される）
-			// //$text = mb_convert_encoding($text,"UTF-8","auto");
-			// $timestamp = date("Y-m-d H:i:s" , strtotime($timestamp));
-			// $nowtimestamp = date("Y-m-d H:i:s" , strtotime("now"));
-			// $stmt = $mysql->query("SET NAMES UTF8;");
-			// $innsertData = $mysql->prepare($updateQuery);
-			// //'INSERT INTO hash_tag_tweets VAULES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date)';
-			// $innsertData->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
-			// $innsertData->bindParam(':user_name',$userName,PDO::PARAM_STR);
-			// $innsertData->bindParam(':user_id',$userId,PDO::PARAM_STR);
-			// $innsertData->bindParam(':tweet_text',$text,PDO::PARAM_STR);
-			// $innsertData->bindParam(':tweet_date',$timestamp,PDO::PARAM_STR);
-			// $innsertData->bindParam(':ins_date',$nowtimestamp,PDO::PARAM_STR);
-			// $innsertData->execute();
-
-			// print_r($userName ."\n");
-			// print_r($timestamp ."\n");
-			// print_r($text ."\n");
-			// echo "\n";
+			//取得した日付を変更
+			$timestamp = date("Y-m-d H:i:s" , strtotime($timestamp));
+			$nowtimestamp = date("Y-m-d H:i:s" , strtotime("now"));
+			//Innsert準備
+			$stmt = $mysql->query("SET NAMES UTF8;");
+			$innsertData = $mysql->prepare($updateQuery);
+			$innsertData->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
+			$innsertData->bindParam(':user_name',$userName,PDO::PARAM_STR);
+			$innsertData->bindParam(':user_id',$userId,PDO::PARAM_STR);
+			$innsertData->bindParam(':tweet_text',$text,PDO::PARAM_STR);
+			$innsertData->bindParam(':tweet_date',$timestamp,PDO::PARAM_STR);
+			$innsertData->bindParam(':ins_date',$nowtimestamp,PDO::PARAM_STR);
+			$innsertData->execute();
 		}
 	}
 }
-function obj2arr($obj)
-{
-    if ( !is_object($obj) ) return $obj;
-
-    $arr = (array) $obj;
-
-    foreach ( $arr as &$a )
-    {
-        $a = obj2arr($a);
-    }
-
-    return $arr;
-}
-
-//ツイートの件数取得
-//echo count($tweets)
-//---
-//$data = mb_convert_encoding($data,"SJIS","UTF-8");
-
-// CSVファイルへ書き込み
-//file_put_contents ($file , $data);
 
 // DB接続を閉じる
 $mysql = null;
