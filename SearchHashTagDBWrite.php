@@ -123,12 +123,16 @@ if(count($tweets) > 0){
 		}
 		//重複チェック
 		$serchTweetId = "SELECT tweet_id FROM hash_tag_tweets WHERE tweet_id = :tweet_id";
+		$serchID = "1022073806007877633";
 		$selectID = $mysql->prepare($serchTweetId);
-		$selectID->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
+		$selectID->bindParam(':tweet_id',$serchID,PDO::PARAM_STR);
 		$selectID->execute();
+		$idDate = $selectID->fetch();
 		$IDOverlap = false;
-		foreach($selectID as $id){
+		foreach($idDate as $id){
 			print_r($id);
+			echo "\n";
+			echo "\n";
 			echo "\n";
 			if($id != 0){
 				$IDOverlap = true;
@@ -141,25 +145,25 @@ if(count($tweets) > 0){
 			//selectIDがヒットしていれば重複
 			echo "同じツイートが含まれてます！ \n";
 		} else {
-			//文字をコマンドラインに出力（必要になったらコメントアウトを外せば出力される）
-			//$text = mb_convert_encoding($text,"UTF-8","auto");
-			$timestamp = date("Y-m-d H:i:s" , strtotime($timestamp));
-			$nowtimestamp = date("Y-m-d H:i:s" , strtotime("now"));
-			$stmt = $mysql->query("SET NAMES UTF8;");
-			$innsertData = $mysql->prepare($updateQuery);
-			//'INSERT INTO hash_tag_tweets VAULES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date)';
-			$innsertData->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
-			$innsertData->bindParam(':user_name',$userName,PDO::PARAM_STR);
-			$innsertData->bindParam(':user_id',$userId,PDO::PARAM_STR);
-			$innsertData->bindParam(':tweet_text',$text,PDO::PARAM_STR);
-			$innsertData->bindParam(':tweet_date',$timestamp,PDO::PARAM_STR);
-			$innsertData->bindParam(':ins_date',$nowtimestamp,PDO::PARAM_STR);
-			$innsertData->execute();
+			// //文字をコマンドラインに出力（必要になったらコメントアウトを外せば出力される）
+			// //$text = mb_convert_encoding($text,"UTF-8","auto");
+			// $timestamp = date("Y-m-d H:i:s" , strtotime($timestamp));
+			// $nowtimestamp = date("Y-m-d H:i:s" , strtotime("now"));
+			// $stmt = $mysql->query("SET NAMES UTF8;");
+			// $innsertData = $mysql->prepare($updateQuery);
+			// //'INSERT INTO hash_tag_tweets VAULES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date)';
+			// $innsertData->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
+			// $innsertData->bindParam(':user_name',$userName,PDO::PARAM_STR);
+			// $innsertData->bindParam(':user_id',$userId,PDO::PARAM_STR);
+			// $innsertData->bindParam(':tweet_text',$text,PDO::PARAM_STR);
+			// $innsertData->bindParam(':tweet_date',$timestamp,PDO::PARAM_STR);
+			// $innsertData->bindParam(':ins_date',$nowtimestamp,PDO::PARAM_STR);
+			// $innsertData->execute();
 
-			print_r($userName ."\n");
-			print_r($timestamp ."\n");
-			print_r($text ."\n");
-			echo "\n";
+			// print_r($userName ."\n");
+			// print_r($timestamp ."\n");
+			// print_r($text ."\n");
+			// echo "\n";
 		}
 	}
 }
