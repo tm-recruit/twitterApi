@@ -77,7 +77,7 @@ $mysql->query("SET NAMES UTF8;");
 
 //Insert文生成
 $updateQuery = 
-'INSERT INTO hash_tag_tweets (tweet_id,user_name,user_id,tweet_text,tweet_date) VALUES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date)';
+'INSERT INTO hash_tag_tweets (tweet_id,user_name,user_id,tweet_text,tweet_date,ins_date) VALUES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date, :ins_date)';
 
 //select文実行
 $selectHasTagTabelLatestTweetDate = '2018-07-25 19:10:00';
@@ -143,21 +143,23 @@ if(count($tweets) > 0){
 		} else {
 			//文字をコマンドラインに出力（必要になったらコメントアウトを外せば出力される）
 			//$text = mb_convert_encoding($text,"UTF-8","auto");
-			// $timestamp = date("Y-m-d H:i:s" , strtotime($timestamp));
-			// $stmt = $mysql->query("SET NAMES UTF8;");
-			// $innsertData = $mysql->prepare($updateQuery);
-			// //'INSERT INTO hash_tag_tweets VAULES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date)';
-			// $innsertData->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
-			// $innsertData->bindParam(':user_name',$userName,PDO::PARAM_STR);
-			// $innsertData->bindParam(':user_id',$userId,PDO::PARAM_STR);
-			// $innsertData->bindParam(':tweet_text',$text,PDO::PARAM_STR);
-			// $innsertData->bindParam(':tweet_date',$timestamp,PDO::PARAM_STR);
-			// $innsertData->execute();
+			$timestamp = date("Y-m-d H:i:s" , strtotime($timestamp));
+			$nowtimestamp = date("Y-m-d H:i:s" , strtotime("now"));
+			$stmt = $mysql->query("SET NAMES UTF8;");
+			$innsertData = $mysql->prepare($updateQuery);
+			//'INSERT INTO hash_tag_tweets VAULES(:tweet_id, :user_name, :user_id, :tweet_text, :tweet_date)';
+			$innsertData->bindParam(':tweet_id',$tweetId,PDO::PARAM_STR);
+			$innsertData->bindParam(':user_name',$userName,PDO::PARAM_STR);
+			$innsertData->bindParam(':user_id',$userId,PDO::PARAM_STR);
+			$innsertData->bindParam(':tweet_text',$text,PDO::PARAM_STR);
+			$innsertData->bindParam(':tweet_date',$timestamp,PDO::PARAM_STR);
+			$innsertData->bindParam(':ins_date',$nowtimestamp,PDO::PARAM_STR);
+			$innsertData->execute();
 
-			// print_r($userName ."\n");
-			// print_r($timestamp ."\n");
-			// print_r($text ."\n");
-			// echo "\n";
+			print_r($userName ."\n");
+			print_r($timestamp ."\n");
+			print_r($text ."\n");
+			echo "\n";
 		}
 	}
 }
