@@ -65,26 +65,26 @@ $minX = $min["0"];
 $minHashId = $maxHashId - $mergin;
 if($minHashId <= $minX) $minHashId = $minX;
 if($minHashId < 0) $minHashId = $minX;
-print_r($minHashId);
-echo "\n";
-
-print_r($maxHashId);
-echo "\n";
-
 
 //text文生成
-$textList = $mysql->query("SET NAMES UTF8;");
 $textSelect = "SELECT tweet_text FROM hash_tag_tweets where hash_id BETWEEN :minI AND :maxI";
+$textListExe = $mysql->query("SET NAMES UTF8;");
 $textListExe = $mysql->prepare($textSelect);
 $textListExe->bindParam(':minI',$minHashId,PDO::PARAM_INT);
 $textListExe->bindParam(':maxI',$maxHashId,PDO::PARAM_INT);
-print_r($textListExe);
 $textListExe->execute();
 $textListFetch = $textListExe->fetchAll();
-print_r($textListFetch);
-// foreach($textListFetch as $text){
-// 	$textList = $text[""];
-// }
-//print_r($textList);
+//print_r($textListFetch);
+$count = 0;
+foreach($textListFetch as $key => $text){
+	$textList[$key] = $text["tweet_text"];
+	$count += 1;
+}
 // DB接続を閉じる
 $mysql = null;
+
+// Content-TypeをJSONに指定する
+header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *");
+
+echo json_encode($textList);
